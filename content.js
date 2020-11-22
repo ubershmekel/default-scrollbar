@@ -12,13 +12,23 @@ function getBackToDefaultScrollbars() {
             var ruleSet = sheet.rules || sheet.cssRules;
             for (var i = 0; i < ruleSet.length; ++i) {
                 var rule = ruleSet[i];
-                if (/scrollbar/.test(rule.selectorText)) {
+                if (!rule.selectorText) {
+                    continue;
+                }
+                if (rule.selectorText.indexOf("::-webkit-scrollbar") >= 0) {
                     console.log("deleting scrollbar css rule at", sheet.href);
+                    console.debug("css rule deleted is", rule);
                     sheet.deleteRule(i--);
+                } else if (rule.selectorText.indexOf("scrollbar") >= 0) {
+                    // Github has some classes that are called "scrollbar"
+                    // that if we delete them will break the file edit page.
+                    // So this section is an attempt to debug similar cases if
+                    // they arise.
+                    console.debug("fishy scrollbar selector rule, but not deleting", rule);
                 }
             }
         } catch (e) {
-            console.warn("Can't read the css rules of: " + sheet.href, e);
+            console.debug("Can't read the css rules of: " + sheet.href, e);
             failedSheets[sheet.href] = true;
         }
     };
